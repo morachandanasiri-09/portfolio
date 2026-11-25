@@ -1,0 +1,89 @@
+<!-- public/index.html --> 
+<!DOCTYPE html> 
+<html lang="en"> 
+<head> 
+  <meta charset="UTF-8"> 
+  <title>User CRUD SPA</title> 
+  <style> 
+    body { font-family: Arial; margin: 2rem; } 
+    input { margin: 0.5rem; } 
+    li { margin-top: 1rem; } 
+  </style> 
+</head> 
+<body> 
+  <h1>User Management SPA</h1> 
+  <input id="name" placeholder="Name" /> 
+  <input id="email" placeholder="Email" /> 
+  <input id="age" placeholder="Age" type="number" /> 
+  <button onclick="createUser()">Add User</button> 
+  <h2>Users List</h2> 
+  <ul id="userList"></ul> 
+  <script> 
+    const apiUrl = '/api/users'; 
+    async function fetchUsers() { 
+      const res = await fetch(apiUrl); 
+      const users = await res.json(); 
+      const userList = document.getElementById('userList'); 
+      userList.innerHTML = ''; 
+      users.forEach(user => { 
+        const li = document.createElement('li'); 
+        li.innerHTML = ` 
+          <strong>${user.name}</strong> (${user.email}) - Age: ${user.age} 
+          <button onclick="editUser('${user._id}', '${user.name}', '${user.email}', 
+${user.age})">Edit</button> 
+          <button onclick="deleteUser('${user._id}')">Delete</button> 
+        `; 
+        userList.appendChild(li); 
+      }); 
+    } 
+26 
+ 
+    async function createUser() { 
+      const name = document.getElementById('name').value; 
+      const email = document.getElementById('email').value; 
+      const age = parseInt(document.getElementById('age').value); 
+      await fetch(apiUrl, { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify({ name, email, age }) 
+      }); 
+      clearForm(); 
+      fetchUsers(); 
+    } 
+    async function deleteUser(id) { 
+      await fetch(`${apiUrl}/${id}`, { method: 'DELETE' }); 
+      fetchUsers(); 
+    } 
+    function editUser(id, name, email, age) { 
+      document.getElementById('name').value = name; 
+      document.getElementById('email').value = email; 
+      document.getElementById('age').value = age; 
+ 
+      const btn = document.querySelector('button[onclick="createUser()"]'); 
+      btn.textContent = 'Update User'; 
+      btn.onclick = () => updateUser(id); 
+    } 
+    async function updateUser(id) { 
+      const name = document.getElementById('name').value; 
+      const email = document.getElementById('email').value; 
+      const age = parseInt(document.getElementById('age').value); 
+      await fetch(`${apiUrl}/${id}`, { 
+        method: 'PUT', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify({ name, email, age }) 
+      }); 
+      clearForm(); 
+      const btn = document.querySelector('button[onclick^="updateUser"]'); 
+      btn.textContent = 'Add User'; 
+      btn.setAttribute('onclick', 'createUser()'); 
+      fetchUsers(); 
+    } 
+    function clearForm() { 
+document.getElementById('name').value = ''; 
+document.getElementById('email').value = ''; 
+document.getElementById('age').value = ''; 
+} 
+fetchUsers(); 
+</script> 
+</body> 
+</html>
